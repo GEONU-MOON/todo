@@ -48,7 +48,7 @@
     <div class="container mt-5">
       <h2 class="text-center mb-4">할 일 목록</h2>
       {% if user_name %}
-      <p>안녕하세요, {{ user_name }}님!</p>
+      <p id="user-name">안녕하세요, {{ user_name }}님!</p>
       {% endif %}
       <form class="form-inline mb-4" onsubmit="addTodo(event)">
         <input

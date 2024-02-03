@@ -15,6 +15,19 @@
       <h2 class="text-center">회원가입</h2>
       <form id="register-form" class="mt-4">
         <div class="form-group">
+          <label for="userid">사용자 ID</label>
+          <input
+            type="text"
+            class="form-control"
+            id="userid"
+            placeholder="사용자 ID 입력"
+            required
+          />
+          <button type="button" class="btn btn-primary" onclick="checkUserId()">
+            중복 검사
+          </button>
+        </div>
+        <div class="form-group">
           <label for="username">사용자명</label>
           <input
             type="text"
@@ -51,5 +64,52 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- 사용자 스크립트 파일 참조 -->
     <script src="/static/js/script.js"></script>
+    <script>
+      function validateForm() {
+        var userid = $("#userid").val();
+        var username = $("#username").val();
+        var password = $("#password").val();
+        var passwordConfirm = $("#password-confirm").val();
+
+        // 사용자 ID 검사: 영문자, 숫자, 특수문자 6~12자
+        var useridRegex = /^[a-zA-Z0-9!@#$%^&*]{6,12}$/;
+        if (!useridRegex.test(userid)) {
+          alert("사용자 ID는 6~12자의 영문자, 숫자, 특수문자만 가능합니다.");
+          return false;
+        }
+
+        // 비밀번호 검사: 최소 6자
+        var passwordRegex = /^.{6,}$/;
+        if (!passwordRegex.test(password)) {
+          alert("비밀번호는 최소 6자 이상이어야 합니다.");
+          return false;
+        }
+
+        // 비밀번호 확인 검사
+        if (password !== passwordConfirm) {
+          alert("비밀번호가 일치하지 않습니다.");
+          return false;
+        }
+
+        // 이름 검사: 한글, 영어, 숫자 포함 최대 15자
+        var usernameRegex = /^[가-힣a-zA-Z0-9]{1,15}$/;
+        if (!usernameRegex.test(username)) {
+          alert("이름은 한글, 영어, 숫자를 포함하여 최대 15자까지 가능합니다.");
+          return false;
+        }
+
+        // 모든 검사를 통과했다면 폼 제출
+        return true;
+      }
+
+      // 폼 제출 이벤트에 유효성 검사 함수 연결
+      $("#register-form").submit(function (event) {
+        event.preventDefault(); // 기본 제출 이벤트 차단
+        if (validateForm()) {
+          // 유효성 검사를 통과하면
+          registerUser(); // 사용자 등록 함수 실행
+        }
+      });
+    </script>
   </body>
 </html>

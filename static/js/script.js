@@ -12,10 +12,14 @@ function initializeTodoApp() {
 
 function setupEventHandlers() {
   // 이벤트 핸들러 설정
-  $("#register-form").submit(function (event) {
-    event.preventDefault();
-    registerUser();
-  });
+  $("#register-form")
+    .off("submit")
+    .on("submit", function (event) {
+      event.preventDefault();
+      if (validateForm()) {
+        registerUser();
+      }
+    });
 
   $("#login-form").submit(function (event) {
     event.preventDefault();
@@ -39,28 +43,58 @@ function setupEventHandlers() {
 
 // 사용자 등록
 function registerUser() {
-  var username = $("#username").val();
-  var password = $("#password").val();
-  var passwordConfirm = $("#password-confirm").val();
+  // 폼 데이터를 변수에 저장
+  var userdata = {
+    userid: $("#userid").val(),
+    username: $("#username").val(),
+    password: $("#password").val(),
+  };
 
-  if (password !== passwordConfirm) {
-    alert("비밀번호가 일치하지 않습니다.");
+  // 제출 버튼 비활성화
+  $("button[type=submit]").prop("disabled", true);
+
+  $.ajax({
+    type: "POST",
+    url: "/register",
+    data: userdata,
+    success: function (response) {
+      // 성공 시 로직
+      alert(response.msg);
+      if (response.result === "success") {
+        window.location.href = "/";
+      } else {
+        // 실패 시 버튼을 다시 활성화
+        $("button[type=submit]").prop("disabled", false);
+      }
+    },
+    error: function () {
+      alert("서버 오류가 발생했습니다.");
+      // 오류 시 버튼을 다시 활성화
+      $("button[type=submit]").prop("disabled", false);
+    },
+  });
+}
+
+function checkUserId() {
+  var userid = $("#userid").val().trim(); // 공백 제거
+  $("#userid").val(userid); // 정제된 값을 다시 입력 필드에 설정
+
+  if (!userid) {
+    alert("사용자 ID를 입력해주세요.");
     return;
   }
 
   $.ajax({
     type: "POST",
-    url: "/register",
+    url: "/check_userid", // 중복 검사를 위한 URL
     data: {
-      username: username,
-      password: password,
+      userid: userid,
     },
     success: function (response) {
-      if (response.result === "success") {
-        alert("회원가입 성공! 로그인 페이지로 이동합니다.");
-        window.location.href = "/";
+      if (response.isAvailable) {
+        alert("사용 가능한 사용자 ID입니다.");
       } else {
-        alert(response.msg);
+        alert("이미 사용 중인 사용자 ID입니다.");
       }
     },
   });
@@ -68,14 +102,14 @@ function registerUser() {
 
 // 로그인
 function loginUser() {
-  var username = $("#username").val();
+  var userid = $("#userid").val(); // 사용자 ID 입력값 가져오기
   var password = $("#password").val();
 
   $.ajax({
     type: "POST",
     url: "/login",
     data: {
-      username: username,
+      userid: userid, // 'username' 대신 'userid' 사용
       password: password,
     },
     success: function (response) {
