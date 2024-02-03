@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>간단한 할 일 목록</title>
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <link
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .form-inline .btn-primary {
+        margin-right: 10px;
+        background-color: #007bff;
+        border-color: #007bff;
+        color: #fff;
+      }
+
+      .form-inline .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+      }
+
+      .form-inline .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        color: #fff;
+      }
+
+      .form-inline .btn-secondary:hover {
+        background-color: #5a6268;
+        border-color: #545b62;
+      }
+
+      .btn-warning {
+        color: white;
+      }
+
+      .btn-success,
+      .btn-secondary,
+      .btn-danger {
+        text-decoration: none !important; /* 버튼에 적용된 줄 그어짐 스타일 제거 */
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h2 class="text-center mb-4">할 일 목록</h2>
+      {% if user_name %}
+      <p>안녕하세요, {{ user_name }}님!</p>
+      {% endif %}
+      <form class="form-inline mb-4" onsubmit="addTodo(event)">
+        <input
+          id="todo-val"
+          type="text"
+          class="form-control mr-2 w-50"
+          placeholder="새 할 일"
+        />
+        <button id="addTodoButton" type="submit" class="btn btn-primary">
+          할 일 추가
+        </button>
+      </form>
+      <ul id="todo-list" class="list-group">
+        {% for todo in todos %}
+        <li
+          class="list-group-item d-flex justify-content-between align-items-center"
+          data-id="{{ todo._id }}"
+          {%
+          if
+          todo.completed
+          %}
+          style="text-decoration: line-through"
+          {%
+          endif
+          %}
+        >
+          <span
+            {%
+            if
+            todo.completed
+            %}
+            style="text-decoration: none !important"
+            {%
+            endif
+            %}
+            >{{ todo.title }}</span
+          >
+          <span>
+            {% if not todo.completed %}
+            <button
+              class="btn btn-success btn-sm mr-1 complete-btn"
+              onclick="completeTodo('{{ todo._id }}')"
+            >
+              완료
+            </button>
+            <button
+              class="btn btn-secondary btn-sm mr-1 edit-btn"
+              onclick="editTodoMode('{{ todo._id }}', '{{ todo.title }}')"
+            >
+              수정
+            </button>
+            {% endif %}
+            <button
+              class="btn btn-danger btn-sm delete-btn"
+              onclick="deleteTodo('{{ todo._id }}')"
+            >
+              삭제
+            </button>
+          </span>
+        </li>
+        {% endfor %}
+      </ul>
+
+      <!-- 로그아웃 버튼 추가 -->
+      <div class="text-center mt-4">
+        <button id="logout-button" class="btn btn-warning">로그아웃</button>
+      </div>
+    </div>
+
+    <script
+      src="https://code.jquery.com/jquery-3.7.1.js"
+      integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="/static/js/script.js"></script>
+  </body>
+</html>
