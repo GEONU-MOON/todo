@@ -1,35 +1,41 @@
+// 문서 준비가 완료되면 초기화 함수와 이벤트 핸들러 설정 함수를 호출
 $(document).ready(function () {
   initializeTodoApp();
   setupEventHandlers();
 });
 
+// 할 일 앱 초기화: 할 일 목록이 페이지에 존재하는지 확인 후 로드
 function initializeTodoApp() {
-  // 페이지가 로드되면 초기화
   if ($("#todo-list").length > 0) {
     loadTodos();
   }
 }
 
+// 이벤트 핸들러 설정: 폼 제출, 버튼 클릭 등의 이벤트에 대한 핸들러를 연결
 function setupEventHandlers() {
-  // 이벤트 핸들러 설정
+  // 회원가입 폼 제출 이벤트 핸들러
   $("#register-form")
     .off("submit")
     .on("submit", function (event) {
       event.preventDefault();
       if (validateForm()) {
+        // 폼 유효성 검사 후 회원가입 처리
         registerUser();
       }
     });
 
+  // 로그인 폼 제출 이벤트 핸들러
   $("#login-form").submit(function (event) {
     event.preventDefault();
     loginUser();
   });
 
+  // 로그아웃 버튼 클릭 이벤트 핸들러
   $("#logout-button").click(function () {
     logoutUser();
   });
 
+  // 할 일 추가 버튼 클릭 이벤트 핸들러
   $("#addTodoButton").click(function (event) {
     event.preventDefault();
     let title = $("#todo-val").val();
@@ -41,43 +47,39 @@ function setupEventHandlers() {
   });
 }
 
-// 사용자 등록
+// 사용자 등록 처리
 function registerUser() {
-  // 폼 데이터를 변수에 저장
   var userdata = {
     userid: $("#userid").val(),
     username: $("#username").val(),
     password: $("#password").val(),
   };
 
-  // 제출 버튼 비활성화
-  $("button[type=submit]").prop("disabled", true);
+  $("button[type=submit]").prop("disabled", true); // 제출 버튼 비활성화
 
   $.ajax({
     type: "POST",
     url: "/register",
     data: userdata,
     success: function (response) {
-      // 성공 시 로직
       alert(response.msg);
       if (response.result === "success") {
         window.location.href = "/";
       } else {
-        // 실패 시 버튼을 다시 활성화
-        $("button[type=submit]").prop("disabled", false);
+        $("button[type=submit]").prop("disabled", false); // 실패 시 버튼 다시 활성화
       }
     },
     error: function () {
       alert("서버 오류가 발생했습니다.");
-      // 오류 시 버튼을 다시 활성화
-      $("button[type=submit]").prop("disabled", false);
+      $("button[type=submit]").prop("disabled", false); // 오류 시 버튼 다시 활성화
     },
   });
 }
 
+// 사용자 ID 중복 확인
 function checkUserId() {
-  var userid = $("#userid").val().trim(); // 공백 제거
-  $("#userid").val(userid); // 정제된 값을 다시 입력 필드에 설정
+  var userid = $("#userid").val().trim();
+  $("#userid").val(userid); // 공백 제거 후 값 재설정
 
   if (!userid) {
     alert("사용자 ID를 입력해주세요.");
@@ -86,10 +88,8 @@ function checkUserId() {
 
   $.ajax({
     type: "POST",
-    url: "/check_userid", // 중복 검사를 위한 URL
-    data: {
-      userid: userid,
-    },
+    url: "/check_userid",
+    data: { userid: userid },
     success: function (response) {
       if (response.isAvailable) {
         alert("사용 가능한 사용자 ID입니다.");
@@ -100,16 +100,16 @@ function checkUserId() {
   });
 }
 
-// 로그인
+// 사용자 로그인 처리
 function loginUser() {
-  var userid = $("#userid").val(); // 사용자 ID 입력값 가져오기
+  var userid = $("#userid").val();
   var password = $("#password").val();
 
   $.ajax({
     type: "POST",
     url: "/login",
     data: {
-      userid: userid, // 'username' 대신 'userid' 사용
+      userid: userid,
       password: password,
     },
     success: function (response) {
@@ -123,7 +123,7 @@ function loginUser() {
   });
 }
 
-// 로그아웃
+// 사용자 로그아웃 처리
 function logoutUser() {
   $.ajax({
     type: "GET",
@@ -134,6 +134,7 @@ function logoutUser() {
   });
 }
 
+// 할 일 목록 로드
 function loadTodos() {
   $.ajax({
     type: "GET",
@@ -142,12 +143,11 @@ function loadTodos() {
     success: function (response) {
       if (response && response.result === "success" && response.todos) {
         let todos = response.todos;
-        $("#todo-list").empty(); // 할 일 목록 초기화
-        for (let i = 0; i < todos.length; i++) {
-          let todo = todos[i];
+        $("#todo-list").empty(); // 기존 목록 초기화
+        todos.forEach(function (todo) {
           let todoHTML = createTodoHTML(todo._id, todo.title, todo.completed);
-          $("#todo-list").append(todoHTML); // 할 일 목록에 추가
-        }
+          $("#todo-list").append(todoHTML);
+        });
       } else {
         console.error("Response is not as expected.");
       }
@@ -158,26 +158,24 @@ function loadTodos() {
   });
 }
 
-// 할 일 추가
+// 할 일 추가 처리
 function addTodo(title) {
   $.ajax({
     type: "POST",
     url: "/todo",
-    data: {
-      title: title,
-    },
+    data: { title: title },
     success: function (response) {
       if (response.result === "success") {
-        $("#todo-val").val("");
-        // 부분 업데이트: 추가한 할 일을 목록에 동적으로 추가
+        $("#todo-val").val(""); // 입력 필드 초기화
         let todoHTML = createTodoHTML(response.id, title, false);
-        $("#todo-list").append(todoHTML);
+        $("#todo-list").append(todoHTML); // 목록에 할 일 추가
         alert("할 일이 추가되었습니다.");
       }
     },
   });
 }
 
+// 할 일 HTML 생성
 function createTodoHTML(id, title, completed) {
   let textDecoration = completed ? "text-decoration: line-through;" : "";
   let buttons = `
@@ -187,6 +185,7 @@ function createTodoHTML(id, title, completed) {
   `;
 
   if (completed) {
+    // 완료된 할 일인 경우 삭제 버튼만 표시
     buttons = `<button class="btn btn-danger btn-sm delete-btn" onclick="deleteTodo('${id}')">삭제</button>`;
   }
 
@@ -198,25 +197,18 @@ function createTodoHTML(id, title, completed) {
   `;
 }
 
+// 할 일 완료 처리
 function completeTodo(id) {
   $.ajax({
     type: "POST",
     url: "/todo/complete",
-    data: {
-      id: id,
-    },
+    data: { id: id },
     success: function (response) {
       if (response.result === "success") {
         alert("할 일이 완료되었습니다.");
-        // 완료된 할 일의 스타일 변경
         let todoItem = $(`li[data-id='${id}']`);
-        todoItem.css("text-decoration", "line-through");
-
-        // 완료 버튼과 수정 버튼 숨기기
-        let completeBtn = todoItem.find(".complete-btn");
-        let editBtn = todoItem.find(".edit-btn");
-        completeBtn.hide();
-        editBtn.hide();
+        todoItem.css("text-decoration", "line-through"); // 텍스트에 취소선 적용
+        todoItem.find(".complete-btn, .edit-btn").hide(); // 완료 및 수정 버튼 숨김
       }
     },
     error: function (error) {
@@ -230,14 +222,11 @@ function deleteTodo(id) {
   $.ajax({
     type: "POST",
     url: "/todo/delete",
-    data: {
-      id: id,
-    },
+    data: { id: id },
     success: function (response) {
       if (response.result === "success") {
         alert("할 일이 삭제되었습니다.");
-        // 부분 업데이트: 삭제한 할 일을 목록에서 제거
-        $(`li[data-id='${id}']`).remove();
+        $(`li[data-id='${id}']`).remove(); // 목록에서 해당 할 일 제거
       }
     },
     error: function (error) {
@@ -248,35 +237,36 @@ function deleteTodo(id) {
 
 // 할 일 수정 모드 활성화
 function editTodoMode(id, title) {
-  let parentLi = $(`li[data-id='${id}']`);
-  parentLi.html(`<form class="form-inline" onsubmit="updateTodo(event, '${id}')">
-                    <input type="text" class="form-control mr-2" value="${title}">
-                    <button type="submit" class="btn btn-primary">업데이트</button>
-                    <button type="button" class="btn btn-secondary" onclick="exitEditTodoMode('${id}', '${title}')">취소</button>
-                </form>`);
+  let todoItem = $(`li[data-id='${id}']`);
+  todoItem.html(`
+    <form class="form-inline" onsubmit="updateTodo(event, '${id}')">
+      <input type="text" class="form-control mr-2" value="${title}">
+      <button type="submit" class="btn btn-primary">업데이트</button>
+      <button type="button" class="btn btn-secondary" onclick="exitEditTodoMode('${id}', '${title}')">취소</button>
+    </form>
+  `);
 }
 
 // 할 일 수정 모드 종료
 function exitEditTodoMode(id, title) {
-  let parentLi = $(`li[data-id='${id}']`);
-  parentLi.html(`
-    <span>${title}</span>
-    <span>
-      <button class="btn btn-success btn-sm mr-1 complete-btn" onclick="completeTodo('${id}')">완료</button>
-      <button class="btn btn-secondary btn-sm mr-1 edit-btn" onclick="editTodoMode('${id}', '${title}')">수정</button>
-      <button class="btn btn-danger btn-sm delete-btn" onclick="deleteTodo('${id}')">삭제</button>
-    </span>
-  `);
+  let todoItem = $(`li[data-id='${id}']`);
+  todoItem.html(
+    createTodoHTML(
+      id,
+      title,
+      todoItem.css("text-decoration") === "line-through"
+    )
+  );
 }
 
-// 할 일 업데이트
+// 할 일 업데이트 처리
 function updateTodo(event, id) {
-  event.preventDefault(); // 폼 제출 기본 동작 방지
+  event.preventDefault(); // 폼 제출 기본 이벤트 방지
   let updatedTitle = $(event.target).find("input").val();
 
   $.ajax({
     type: "POST",
-    url: `/todo/update/${id}`, // 수정된 URL 사용
+    url: `/todo/update/${id}`,
     data: {
       id: id,
       title: updatedTitle,
@@ -284,10 +274,7 @@ function updateTodo(event, id) {
     success: function (response) {
       if (response.result === "success") {
         alert("할 일이 업데이트 되었습니다.");
-        // 부분 업데이트: 수정된 할 일의 내용 변경
-        let todoItem = $(`li[data-id='${id}']`);
-        todoItem.find("span").first().text(updatedTitle);
-        exitEditTodoMode(id, updatedTitle); // 수정 모드 종료
+        exitEditTodoMode(id, updatedTitle); // 수정 모드 종료 및 할 일 내용 업데이트
       } else {
         alert("업데이트에 실패했습니다.");
       }
